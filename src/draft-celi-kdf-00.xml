@@ -121,7 +121,7 @@
                     <t>SRTP</t>
                     <t>SSH</t>
                     <t>TLS</t>
-                    <t>TPM</t>
+                    <t>TPMv1.2</t>
                 </list>
             </t>
         </section>
@@ -167,24 +167,22 @@
                 Each KDF capability advertised SHALL be a self-contained JSON object.
             </t>
 
-            <section anchor="prereq_algs" title="Required Prerequisite Algorithms for KDF135 IKEv1 Validations">
+            <section anchor="prereq_algs" title="Required Prerequisite Algorithms for KDF Validations">
                 <t>
                     Some KDF algorithm implementations rely on other cryptographic primitives. 
                     For example, IKEv1 uses an underlying SHA algorithm. Each of these underlying algorithm primitives
                     must be validated, either separately or as part of the same submission. ACVP provides a mechanism 
                     for specifying the required prerequisites:
                 </t>
-                <texttable anchor="rereqs_table" title="Required Prerequisite Algorithms JSON Values">
+                <texttable anchor="prereqs_table" title="Required Prerequisite Algorithms JSON Values">
                     <ttcol align="left">JSON Value</ttcol>
                     <ttcol align="left">Description</ttcol>
                     <ttcol align="left">JSON type</ttcol>
-                    <ttcol align="left">Valid Values</ttcol>
-                    <ttcol align="left">Optional</ttcol>
+                    <ttcol align="left">Example Values</ttcol>
                     <c>algorithm</c>
                     <c>a prerequisite algorithm</c>
-                    <c>value</c>
-                    <c>HMAC, SHA</c>
-                    <c>No</c>
+                    <c>string</c>
+                    <c>AES, SHA, TDES</c>
 
                     <c>valValue</c>
                     <c>algorithm validation number</c>
@@ -324,11 +322,54 @@
                     <c>Version of the TLS protocol used for the TLS KDF</c>
                     <c>array of strings</c>
                 </texttable>
+
+                <t>The following grid outlines which properties are REQUIRED, as well as all the possible values a server MAY support for each KDF outlined in <xref target="SP800-108"/></t>
+                <texttable anchor="property_grid_108" title="KDF Capabilities Applicability Grid from SP800-108">
+                    <ttcol align="left">algorithm</ttcol><ttcol align="left">macMode</ttcol><ttcol align="left">supportedLengths</ttcol><ttcol align="left">fixedDataOrder</ttcol><ttcol align="left">counterLength</ttcol><ttcol align="left">supportsEmptyIv</ttcol>
+                    <c>Counter</c><c>["CMAC-AES-128", "CMAC-AES-192", "CMAC-AES-256", "CMAC-TDES", "HMAC-SHA-1", "HMAC-SHA2-224", "HMAC-SHA2-256", "HMAC-SHA2-384", "HMAC-SHA2-512"]</c><c>{"Min": 8, "Max": 1024", "Inc": any}</c><c>["after fixed data", "before fixed data", "middle fixed data"]</c><c>[8, 16, 24, 32]</c><c></c>
+                    <c>Feedback</c><c>["CMAC-AES-128", "CMAC-AES-192", "CMAC-AES-256", "CMAC-TDES", "HMAC-SHA-1", "HMAC-SHA2-224", "HMAC-SHA2-256", "HMAC-SHA2-384", "HMAC-SHA2-512"]</c><c>{"Min": 8, "Max": 1024", "Inc": any}</c><c>["none", "after fixed data", "before fixed data", "before iterator"]</c><c>[0, 8, 16, 24, 32]</c><c>true, false</c>
+                    <c>Double Pipeline Iterator</c><c>["CMAC-AES-128", "CMAC-AES-192", "CMAC-AES-256", "CMAC-TDES", "HMAC-SHA-1", "HMAC-SHA2-224", "HMAC-SHA2-256", "HMAC-SHA2-384", "HMAC-SHA2-512"]</c><c>{"Min": 8, "Max": 1024", "Inc": any}</c><c>["none", "after fixed data", "before fixed data", "before iterator"]</c><c>[0, 8, 16, 24, 32]</c><c></c>
+                </texttable>
+
+                <t>The following grid outlines which properties are REQUIRED as well as all the possible values a server MAY support for each IKE KDF outlines in <xref target="SP800-135-Rev-1"/></t>
+                <texttable anchor="property_grid_ike" title="IKE KDF Capabilities Applicability Grid from SP800-135">
+                    <ttcol align="left">algorithm</ttcol><ttcol align="left">authenticationMethod</ttcol><ttcol align="left">initiatorNonceLength</ttcol><ttcol align="left">responderNonceLength</ttcol><ttcol align="left">diffieHellmanSharedSecretLength</ttcol><ttcol align="left">preSharedKeyLength</ttcol><ttcol align="left">derivedKeyingMaterialLength</ttcol><ttcol align="left">hashAlg</ttcol>
+                    <c>IKEv1</c><c>"dsa", "psk", "pke"</c><c>{"Min": 64, "Max": 2048, "Inc": any}</c><c>{"Min": 64, "Max": 2048, "Inc": any}</c><c>{"Min": 224, "Max": 8192, "Inc": any}</c><c>{"Min": 8, "Max": 8192, "Inc": any}</c><c></c><c>["SHA-1", "SHA2-224", "SHA2-256", "SHA2-384", "SHA2-512"]</c>
+                    <c>IKEv2</c><c></c><c>{"Min": 64, "Max": 2048, "Inc": any}</c><c>{"Min": 64, "Max": 2048, "Inc": any}</c><c>{"Min": 224, "Max": 8192, "Inc": any}</c><c></c><c>{"Min": 160, "Max": 16384, "Inc": any}</c><c>["SHA-1", "SHA2-224", "SHA2-256", "SHA2-384", "SHA2-512"]</c>
+                </texttable>
+
+                <t>The following grid outlines which properties are REQUIRED as well as all the possible values a server MAY support for SSH and SRTP KDF outlines in <xref target="SP800-135-Rev-1"/></t>
+                <texttable anchor="property_grid_sshsrtp" title="SSH and SRTP KDF Capabilities Applicability Grid from SP800-135">
+                    <ttcol align="left">algorithm</ttcol><ttcol align="left">cipher</ttcol><ttcol align="left">hashAlg</ttcol><ttcol align="left">kdrExponent</ttcol><ttcol align="left">supportsZeroKdr</ttcol>
+                    <c>SSH</c><c>["TDES", "AES-128", "AES-192", "AES-256"]</c><c>["SHA-1", "SHA2-224", "SHA2-256", "SHA2-384", "SHA2-512"]</c><c></c><c></c>
+                    <c>SRTP</c><c>["AES-128", "AES-192", "AES-256"]</c><c></c><c>[1, ..., 24]</c><c>true, false</c>
+                </texttable>
+
+                <t>The following grid outlines which properties are REQUIRED as well as all the possible values a server MAY support for ANSI x9.63 KDF outlines in <xref target="SP800-135-Rev-1"/></t>
+                <texttable anchor="property_grid_ansi" title="ANSI x9.63 KDF Capabilities Applicability Grid from SP800-135">
+                    <ttcol align="left">algorithm</ttcol><ttcol align="left">fieldSize</ttcol><ttcol align="left">sharedInfoLength</ttcol><ttcol align="left">keyLength</ttcol><ttcol align="left">hashAlg</ttcol>
+                    <c>ANSI x9.63</c><c>[224, 233, 256, 283, 384, 409, 521, 571]</c><c>{"Min": 0, "Max": 1024", "Inc": any}</c><c>{"Min": 128, "Max": 4096, "Inc": any}</c><c>["SHA2-224", "SHA2-256", "SHA2-384", "SHA2-512"]</c>
+                </texttable>
+
+                <t>The following grid outlines which properties are REQUIRED as well as all the possible values a server MAY support for SNMP KDF outlines in <xref target="SP800-135-Rev-1"/></t>
+                <texttable anchor="property_grid_snmp" title="SNMP KDF Capabilities Applicability Grid from SP800-135">
+                    <ttcol align="left">algorithm</ttcol><ttcol align="left">engineId</ttcol><ttcol align="left">passwordLength</ttcol>
+                    <c>SNMP</c><c>one or two hex strings between 9-32 characters</c><c>{"Min": 64, "Max": 8192, "Inc": 8}</c>
+                </texttable>
+
+                <t>The following grid outlines which properties are REQUIRED as well as all the possible values a server MAY support for TLS KDF outlines in <xref target="SP800-135-Rev-1"/></t>
+                <texttable anchor="property_grid_tls" title="TLS KDF Capabilities Applicability Grid from SP800-135">
+                    <ttcol align="left">algorithm</ttcol><ttcol align="left">tlsVersion</ttcol><ttcol align="left">hashAlg</ttcol>
+                    <c>TLS</c><c>["v1.0/1.1", "v1.2"]</c><c>["SHA2-256", "SHA2-384", "SHA2-512"]</c>
+                </texttable>
+
+                <t>The TPM v1.2 KDF does not have any applicable properties.</t>
             </section>
         </section>
+
         <section anchor="test_vectors" title="Test Vectors">
-            <t>The ACVP server provides test vectors to the ACVP client, which are then processed and returned to	    the ACVP server for validation.  A typical ACVP validation session would require multiple test vector	    sets to be downloaded and processed by the ACVP client.  Each test vector set represents an individual	    Key Derivation Function (KDF), such as SNMP, SSH,  etc.  This section	describes the JSON schema for a test vector set used with SP800-135 IKEv1 KDF algorithms.</t>
-            <t>The test vector set JSON schema is a multi-level hierarchy that contains meta data for the entire	vector set as well as individual test vectors to be processed by the ACVP client.The following table describes the JSON elements at the top level of the hierarchy.	</t>
+            <t>The ACVP server provides test vectors to the ACVP client, which are then processed and returned to the ACVP server for validation.  A typical ACVP validation session would require multiple test vector	    sets to be downloaded and processed by the ACVP client.  Each test vector set represents an individual	    Key Derivation Function (KDF), such as SNMP, SSH,  etc.  This section	describes the JSON schema for a test vector set used with SP800-135 IKEv1 KDF algorithms.</t>
+            <t>The test vector set JSON schema is a multi-level hierarchy that contains meta data for the entire vector set as well as individual test vectors to be processed by the ACVP client.The following table describes the JSON elements at the top level of the hierarchy.	</t>
             <texttable anchor="vs_top_table" title="Vector Set JSON Object">
                 <ttcol align="left">JSON Value</ttcol>
                 <ttcol align="left">Description</ttcol>
@@ -612,10 +653,32 @@
                 <!-- the following is the minimum to make xml2rfc happy -->
                 <front>
                     <title>ACVP Specification</title>
-                    <author initials="authInitials" surname="authSurName">
-                        <organization>NIST</organization>
+                    <author initials="BF" surname="Barry Fussell">
+                        <organization>Cisco</organization>
                     </author>
-                    <date year="2016" />
+                    <date year="2018" />
+                </front>
+            </reference>
+        </references>
+
+        <references title="Informative References">
+            <reference anchor="SP800-108">
+                <front>
+                    <title>Recommendation for Key Derivation Using Pseudorandom Functions</title>
+                    <author surname="Lily Chen">
+                        <organization>National Institute of Standards and Technology</organization>
+                    </author>
+                    <date month="October" year="2009" />
+                </front>
+            </reference>
+
+            <reference anchor="SP800-135-Rev-1">
+                <front>
+                    <title>Recommendation for Existing Application-Specific Key Derivation Functions</title>
+                    <author surname="Quynh Dang">
+                        <organization>National Institute of Standards and Technology</organization>
+                    </author>
+                    <date month="December" year="2011" />
                 </front>
             </reference>
         </references>
